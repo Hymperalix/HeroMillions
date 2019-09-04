@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "eamodio.gitlens",
+    "dbaeumer.vscode-eslint",
+    "octref.vetur",
+    "sysoev.language-stylus"
+  ]  
+}

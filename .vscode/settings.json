@@ -1,0 +1,26 @@
+{
+  "workbench.statusBar.feedback.visible": false,
+  "git.enableSmartCommit": true,
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "editor.detectIndentation": false,
+  "gitlens.advanced.messages": {
+    "suppressShowKeyBindingsNotice": true
+  },
+  "editor.tabSize": 2,
+  "gitlens.defaultDateStyle": "absolute",
+  "gitlens.defaultDateFormat": "DD/MM/YYYY HH:mm:ss",
+  "gitlens.views.fileHistory.enabled": true,
+  "gitlens.views.lineHistory.enabled": true,
+  "breadcrumbs.enabled": false,
+  "eslint.autoFixOnSave": true,
+  "eslint.packageManager": "yarn",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    {
+      "language": "vue",
+      "autoFix": true
+    }
+  ]
+}
