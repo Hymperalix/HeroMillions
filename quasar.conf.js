@@ -78,6 +78,11 @@ module.exports = function (ctx) {
           }
         })
       }
+      // uglifyOptions: {
+      //   compress: {
+      //     drop_console: true
+      //   }
+      // }
     },
 
     devServer: {
