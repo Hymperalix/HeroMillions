@@ -1,4 +1,4 @@
-y.
+  
 [build]
   command = "quasar build -m pwa"
   publish = "dist/pwa"
