@@ -1,0 +1,12 @@
+y.
+[build]
+  command = "quasar build -m pwa"
+  publish = "dist/pwa"
+  
+[build.environment]
+  YARN_VERSION = "1.21.1"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

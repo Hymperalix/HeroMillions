@@ -15,9 +15,9 @@
 	// 	],
 	// 	"description": "Log output to console"
   // }
-  "New Wisibi Page": {
+  "New Page": {
     "scope": "vue",
-    "prefix": "new_wis_page",
+    "prefix": "new_page",
     "body": [
       "<template>",
       "\t<!-- BEGIN Q-PAGE -->",
