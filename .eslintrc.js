@@ -33,8 +33,8 @@ module.exports = {
   rules: {
     // disable require camelcase
     'camelcase': 'off',
-    
-    "no-console": "off",
+
+    'no-console': 'off',
     
     'vue/max-attributes-per-line': 'off',
     // allow async-await
