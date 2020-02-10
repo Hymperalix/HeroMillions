@@ -23,13 +23,13 @@ export default {
   },
   mounted () {
     const app = this
-    app.load(prized_keys_json)
+    app.load()
+    app.log(app.prized_keys_json)
   },
   methods: {
     load () {
       const app = this
       app.getPrizedKeysJson()
-      app.log()
     },
     async getPrizedKeysJson () {
       const app = this

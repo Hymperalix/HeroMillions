@@ -34,6 +34,8 @@ module.exports = {
     // disable require camelcase
     'camelcase': 'off',
     
+    "no-console": "off",
+    
     'vue/max-attributes-per-line': 'off',
     // allow async-await
     'generator-star-spacing': 'off',
