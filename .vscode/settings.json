@@ -22,5 +22,8 @@
       "language": "vue",
       "autoFix": true
     }
-  ]
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }
