@@ -1,0 +1,65 @@
+
+//  *--------*
+//  | Header |
+//  *--------*
+.hero-table .q-table thead tr th
+  background-color $green-5
+.q-table thead tr th
+  position sticky
+  top: 0
+  opacity: 1
+  z-index: 2
+
+//  Sticky First/Last Child
+.sticky-first-child .q-table thead tr th:first-child,
+.sticky-last-child .q-table thead tr th:last-child
+  z-index 3
+  position sticky !important
+.sticky-first-child .q-table thead tr th:first-child
+  left 0
+.sticky-last-child .q-table thead tr th:last-child
+  right 0
+.hero-table.sticky-first-child .q-table thead tr th:first-child:hover,
+.hero-table.sticky-last-child .q-table thead tr th:last-child:hover
+  background-color $green-6 !important
+
+//  Hover Table Header Column
+.hero-table .q-table thead tr th:hover
+  background-color $green-6 !important
+
+//  *------*
+//  | Body |
+//  *------*
+//  Even Table Body Row
+.hero-table.even-odd .q-table tbody tr:nth-child(even)
+  background-color $green-2 !important
+//  Odd Table Body Row
+.hero-table.even-odd .q-table tbody tr:nth-child(odd)
+  background-color $green-1 !important
+
+//  Expandable Table Body Row
+.hero-table.expandable-even-odd .q-table tbody tr:nth-child(1n)
+  background-color $green-4 !important
+//  Even Table Body Row
+.hero-table.expandable-even-odd .q-table tbody tr:nth-child(4n-3)
+  background-color $green-1 !important
+//  Odd Table Body Row
+.hero-table.expandable-even-odd .q-table tbody tr:nth-child(4n-1)
+  background-color $green-2 !important
+
+//  Sticky First/Last Child
+.sticky-first-child .q-table tbody td:first-child,
+.sticky-last-child .q-table tbody td:last-child
+  z-index 1
+  position sticky !important
+.sticky-first-child .q-table tbody td:first-child
+  left 0
+.sticky-last-child .q-table tbody td:last-child
+  right 0
+
+//  Hover Table Body Row
+.hero-table .q-table tbody tr:hover:nth-child(n)
+  background-color $green-4 !important
+
+.hero-table .q-card
+  background-color $green-4

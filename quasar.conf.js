@@ -11,13 +11,16 @@ module.exports = function (ctx) {
     ],
 
     css: [
-      'heromillions.styl'
+      'scrollbar.styl',
+      'heromillions.styl',
+      'table.styl',
+      'popup.styl'
     ],
 
     extras: [
       // 'ionicons-v4',
       // 'mdi-v3',
-      // 'fontawesome-v5',
+      'fontawesome-v5',
       // 'eva-icons',
       // 'themify',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
@@ -30,27 +33,35 @@ module.exports = function (ctx) {
       // iconSet: 'ionicons-v4',
       // lang: 'de', // Quasar language
 
-      // all: true, // --- includes everything; for dev only!
+      all: 'auto', // --- includes everything; for dev only!
 
-      components: [
-        'QLayout',
-        'QHeader',
-        'QDrawer',
-        'QPageContainer',
-        'QPage',
-        'QToolbar',
-        'QToolbarTitle',
-        'QBtn',
-        'QIcon',
-        'QList',
-        'QItem',
-        'QItemSection',
-        'QItemLabel'
-      ],
+      components: [], // auto, see above
 
-      directives: [
-        'Ripple'
-      ],
+      directives: [], // auto, see above
+
+      // components: [
+      //   'QLayout',
+      //   'QHeader',
+      //   'QDrawer',
+      //   'QPageContainer',
+      //   'QPage',
+      //   'QToolbar',
+      //   'QToolbarTitle',
+      //   'QBtn',
+      //   'QIcon',
+      //   'QList',
+      //   'QItem',
+      //   'QItemSection',
+      //   'QItemLabel',
+      //   'QTable',
+      //   'QTh',
+      //   'QTr',
+      //   'QTd'
+      // ],
+
+      // directives: [
+      //   'Ripple'
+      // ],
 
       // Quasar plugins
       plugins: [
