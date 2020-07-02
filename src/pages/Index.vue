@@ -128,13 +128,8 @@ export default {
         { name: 'draw', required: true, label: 'Draw', field: 'draw' },
         { name: 'date', required: true, label: 'Date', field: 'date', type: 'date' },
         { name: 'week_day', required: true, label: 'Week Day', field: 'week_day' },
-        { name: 'number_#1', visible: true, label: 'Number #1', field: 'numbers', format: val => val[0] },
-        { name: 'number_#2', visible: true, label: 'Number #2', field: 'numbers', format: val => val[1] },
-        { name: 'number_#3', visible: true, label: 'Number #3', field: 'numbers', format: val => val[2] },
-        { name: 'number_#4', visible: true, label: 'Number #4', field: 'numbers', format: val => val[3] },
-        { name: 'number_#5', visible: true, label: 'Number #5', field: 'numbers', format: val => val[4] },
-        { name: 'star_#1', visible: true, label: 'Star #1', field: 'stars', format: val => val[0] },
-        { name: 'star_#2', visible: true, label: 'Star #2', field: 'stars', format: val => val[1] }
+        { name: 'result', required: true, label: 'Result', field: (row) => { let numbers = [...row.numbers]; let stars = [...row.stars]; return { numbers, stars } }, format: val => { return (val.numbers.sort()).join(' ') + ' + ' + (val.stars.sort()).join(' ') } },
+        { name: 'result__exit_order', required: true, label: 'Result (Exit Order)', field: (row) => { let numbers = [...row.numbers]; let stars = [...row.stars]; return { numbers, stars } }, format: val => { return val.numbers.join(' ') + ' + ' + val.stars.join(' ') } }
       ],
       numbers_data: [],
       numbers_columns: [
