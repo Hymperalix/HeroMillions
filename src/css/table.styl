@@ -3,7 +3,12 @@
 //  | Header |
 //  *--------*
 .hero-table .q-table thead tr th
-  background-color $green-5
+  background-color $grey-5
+
+//  Hover Table Header Column
+.hero-table .q-table thead tr th.selected-column
+  background-color $grey-6 !important
+
 .q-table thead tr th
   position sticky
   top: 0
@@ -21,31 +26,44 @@
   right 0
 .hero-table.sticky-first-child .q-table thead tr th:first-child:hover,
 .hero-table.sticky-last-child .q-table thead tr th:last-child:hover
-  background-color $green-6 !important
+  background-color $grey-6 !important
+
+.hero-table .q-table thead tr th .sortBy
+  opacity 0
+.hero-table .q-table thead tr th .sorted-column
+  opacity 1
 
 //  Hover Table Header Column
 .hero-table .q-table thead tr th:hover
-  background-color $green-6 !important
+  background-color $grey-6 !important
+
+//  Hover Table Header Selected Column
+.hero-table .q-table thead tr th.selected-column:hover
+  background-color $grey-6 !important
+
+//  Hover Table Header Sort Icon
+.hero-table .q-table thead tr th:hover .sortBy
+  opacity 1
 
 //  *------*
 //  | Body |
 //  *------*
 //  Even Table Body Row
 .hero-table.even-odd .q-table tbody tr:nth-child(even)
-  background-color $green-2 !important
+  background-color $grey-2 !important
 //  Odd Table Body Row
 .hero-table.even-odd .q-table tbody tr:nth-child(odd)
-  background-color $green-1 !important
+  background-color $grey-1 !important
 
 //  Expandable Table Body Row
 .hero-table.expandable-even-odd .q-table tbody tr:nth-child(1n)
-  background-color $green-4 !important
+  background-color $grey-4 !important
 //  Even Table Body Row
 .hero-table.expandable-even-odd .q-table tbody tr:nth-child(4n-3)
-  background-color $green-1 !important
+  background-color $grey-1 !important
 //  Odd Table Body Row
 .hero-table.expandable-even-odd .q-table tbody tr:nth-child(4n-1)
-  background-color $green-2 !important
+  background-color $grey-2 !important
 
 //  Sticky First/Last Child
 .sticky-first-child .q-table tbody td:first-child,
@@ -59,7 +77,7 @@
 
 //  Hover Table Body Row
 .hero-table .q-table tbody tr:hover:nth-child(n)
-  background-color $green-4 !important
+  background-color $grey-4 !important
 
 .hero-table .q-card
-  background-color $green-4
+  background-color $grey-4

@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHr LpR lFr">
-    <q-header bordered class="bg-green-5 text-white" height-hint="98">
+    <q-header bordered class="bg-cyan-10 text-white" height-hint="98">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="left_drawer = !left_drawer" />
 
@@ -51,11 +51,11 @@
           >
             <q-table
               :title="t.label"
-              class="bg-green-1 q-px-sm absolute hero-table fit even-odd sticky-first-child column no-wrap"
+              class="q-px-sm absolute hero-table fit even-odd sticky-first-child column no-wrap"
               :table-class="(!$q.screen.xs ? 'col' : '')"
               :data="TABLE_DATA"
               :columns="TABLE_COLUMNS"
-              :pagination.sync="table.pagination"
+              :pagination.sync="table[tab + '_pagination']"
               :rows-per-page-options="[0]"
               :filter="table.filter"
               row-key="id"
@@ -75,13 +75,43 @@
                     :key="col.name"
                     :props="props"
                     class="cursor-pointer"
+                    :class="{ 'selected-column' : table.selected_column === col.name }"
+                    @click="table.selected_column === col.name ? table.selected_column = '' : table.selected_column = col.name"
                   >
-                    {{ col.label + (col.type === 'date' ? ' (' + date_format + ')' : '') }}
-                    <hero-popup-filter-table-column
-                      @hide="selected_column = ''"
-                    />
+                    <div class="row no-wrap justify-between items-center">
+                      {{ getHeaderLabel(col) }}
+                      <q-icon
+                        v-if="col.heroSortable"
+                        class="sortBy"
+                        :class="table[tab + '_pagination'].sortBy === col.name ? 'sorted-column' : ''"
+                        :name="table[tab + '_pagination'].sortBy === col.name ? (table[tab + '_pagination'].descending ? 'fas fa-sort-down' : 'fas fa-sort-up' ) : 'fas fa-sort'"
+                        @click.stop="table[tab + '_pagination'].sortBy === col.name ? table[tab + '_pagination'].descending = !table[tab + '_pagination'].descending : (table[tab + '_pagination'].sortBy = col.name, table[tab + '_pagination'].descending = false)"
+                      />
+                    </div>
+                    <!-- <hero-popup-filter-table-column
+                      :data="table[tab + '_data']"
+                      :column="col.name"
+                      :columns.sync="table[tab + '_columns']"
+                      :descending="table[ tab + '_pagination'].descending"
+                      :sort-by="table[ tab + '_pagination'].sortBy"
+                      @hide="table.selected_column = ''"
+                    /> -->
                   </q-th>
                 </q-tr>
+              </template>
+              <template v-slot:body-cell="props">
+                <q-td
+                  :props="props"
+                >
+                  <q-badge
+                    color="transparent"
+                    text-color="black"
+                    :label="props.value"
+                  />
+                  <!-- {{ props.col.format }} -->
+                  <!-- {{ props.value }} -->
+                  <!-- {{ getCellValue(props) }} -->
+                </q-td>
               </template>
               <template v-slot:loading>
                 <q-inner-loading
@@ -107,7 +137,7 @@
       </q-page>
     </q-page-container>
 
-    <q-footer elevated class="bg-grey-8 text-white">
+    <q-footer elevated class="bg-cyan-10 text-white">
       <q-toolbar>
         <q-toolbar-title>
           <q-avatar>
@@ -122,15 +152,15 @@
 
 <script>
 // import { date } from 'quasar'
-import HeroPopupFilterTableColumn from 'components/Popups/HeroPopupFilterTableColumn'
+// import HeroPopupFilterTableColumn from 'components/Popups/HeroPopupFilterTableColumn'
 
 export default {
   components: {
-    HeroPopupFilterTableColumn
+    // HeroPopupFilterTableColumn
   },
   data: () => ({
     loaded: {
-      drafts: false,
+      api: false,
       stats: false
     },
     date_format: 'YYYY/MM/DD',
@@ -152,94 +182,106 @@ export default {
     table: {
       selected_column: '',
       filter: '',
-      pagination: {
-        sortBy: '',
-        descending: true,
-        rowsPerPage: 0
-      },
+      //  Drafts
       drafts_data: [],
       drafts_columns: [
-        { name: 'id', required: true, label: '# Draft', field: 'id' },
-        { name: 'draw', required: true, label: 'Draw', field: 'draw' },
-        { name: 'date', required: true, label: 'Date', field: 'date', type: 'date' },
-        { name: 'week_day', required: true, label: 'Week Day', field: 'week_day' },
+        { name: 'id', required: true, label: '# Draft', field: 'id', heroSortable: true },
+        { name: 'draw', required: true, label: 'Draw', field: 'draw', heroSortable: true },
+        { name: 'date', required: true, label: 'Date', field: 'date', type: 'date', heroSortable: true },
+        { name: 'week_day', required: true, label: 'Week Day', field: 'week_day', heroSortable: true },
         {
           name: 'result',
           required: true,
           label: 'Result',
           field: (row) => { let numbers = [...row.numbers]; let stars = [...row.stars]; return { numbers, stars } },
-          format: val => { return (val.numbers.sort()).join(' ') + ' + ' + (val.stars.sort()).join(' ') }
+          format: val => { return (val.numbers.sort()).join(' ') + ' + ' + (val.stars.sort()).join(' ') },
+          heroSortable: false
         },
         {
           name: 'result__exit_order',
           required: true,
           label: 'Result (Exit Order)',
           field: (row) => { let numbers = [...row.numbers]; let stars = [...row.stars]; return { numbers, stars } },
-          format: val => { return val.numbers.join(' ') + ' + ' + val.stars.join(' ') }
+          format: val => { return val.numbers.join(' ') + ' + ' + val.stars.join(' ') },
+          heroSortable: false
         }
       ],
+      drafts_pagination: {
+        sortBy: 'id',
+        descending: true,
+        rowsPerPage: 0,
+        page: 1
+      },
+      //  Numbers
       numbers_data: [
         { id: 'details', max_draw: 5, total_length: 50 },
-        { id: 1, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 2, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 3, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 4, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 5, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 6, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 7, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 8, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 9, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 10, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 11, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 12, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 13, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 14, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 15, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 16, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 17, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 18, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 19, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 20, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 21, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 22, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 23, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 24, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 25, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 26, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 27, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 28, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 29, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 30, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 31, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 32, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 33, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 34, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 35, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 36, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 37, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 38, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 39, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 40, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 41, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 42, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 43, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 44, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 45, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 46, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 47, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 48, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 49, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
-        { id: 50, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 }
+        { id: 1, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 2, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 3, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 4, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 5, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 6, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 7, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 8, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 9, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 10, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 11, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 12, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 13, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 14, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 15, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 16, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 17, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 18, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 19, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 20, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 21, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 22, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 23, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 24, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 25, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 26, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 27, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 28, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 29, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 30, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 31, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 32, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 33, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 34, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 35, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 36, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 37, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 38, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 39, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 40, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 41, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 42, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 43, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 44, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 45, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 46, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 47, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 48, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 49, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] },
+        { id: 50, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0, synergy_numbers: [], synergy_stars: [] }
       ],
       numbers_columns: [
-        { name: 'id', required: true, label: '# Number', field: 'id' },
-        { name: 'creation_date', required: true, label: 'Added', type: 'date', field: 'creation_date' },
-        { name: 'exits', required: true, label: 'Exits', field: 'exits' },
-        { name: 'exits_percentage', required: true, label: 'Exits %', field: 'exits_percentage' },
-        { name: 'last_draw', required: true, label: 'Last Draw', field: 'last_draw' },
-        { name: 'draw_date', required: true, label: 'Last Draw Date', type: 'date', field: 'draw_date' },
-        { name: 'absences', required: true, label: 'Absences', field: 'absences' }
+        { name: 'id', required: true, label: '# Number', field: 'id', heroSortable: true },
+        { name: 'creation_date', required: true, label: 'Added', type: 'date', field: 'creation_date', heroSortable: true },
+        { name: 'exits', required: true, label: 'Exits', field: 'exits', heroSortable: true },
+        { name: 'exits_percentage', required: true, label: 'Exits %', field: 'exits_percentage', heroSortable: true },
+        { name: 'last_draw', required: true, label: 'Last Draw', field: 'last_draw', heroSortable: true },
+        { name: 'draw_date', required: true, label: 'Last Draw Date', type: 'date', field: 'draw_date', heroSortable: true },
+        { name: 'absences', required: true, label: 'Absences', field: 'absences', heroSortable: true }
       ],
+      numbers_pagination: {
+        sortBy: 'id',
+        descending: false,
+        rowsPerPage: 0,
+        page: 1
+      },
+      //  Stars
       stars_data: [
         { id: 'details', max_draw: 2, total_length: 12 },
         { id: 1, creation_date: '2004/02/13', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 },
@@ -256,14 +298,20 @@ export default {
         { id: 12, creation_date: '2016/09/24', exits: 0, exits_percentage: 0, last_draw: 'N/A', draw_date: 'N/A', absences: 0, existence_counter: 0 }
       ],
       stars_columns: [
-        { name: 'id', required: true, label: '# Star', field: 'id' },
-        { name: 'creation_date', required: true, label: 'Added', type: 'date', field: 'creation_date' },
-        { name: 'exits', required: true, label: 'Exits', field: 'exits' },
-        { name: 'exits_percentage', required: true, label: 'Exits %', field: 'exits_percentage' },
-        { name: 'last_draw', required: true, label: 'Last Draw', field: 'last_draw' },
-        { name: 'draw_date', required: true, label: 'Last Draw Date', type: 'date', field: 'draw_date' },
-        { name: 'absences', required: true, label: 'Absences', field: 'absences' }
-      ]
+        { name: 'id', required: true, label: '# Star', field: 'id', heroSortable: true },
+        { name: 'creation_date', required: true, label: 'Added', type: 'date', field: 'creation_date', heroSortable: true },
+        { name: 'exits', required: true, label: 'Exits', field: 'exits', heroSortable: true },
+        { name: 'exits_percentage', required: true, label: 'Exits %', field: 'exits_percentage', heroSortable: true },
+        { name: 'last_draw', required: true, label: 'Last Draw', field: 'last_draw', heroSortable: true },
+        { name: 'draw_date', required: true, label: 'Last Draw Date', type: 'date', field: 'draw_date', heroSortable: true },
+        { name: 'absences', required: true, label: 'Absences', field: 'absences', heroSortable: true }
+      ],
+      stars_pagination: {
+        sortBy: 'id',
+        descending: false,
+        rowsPerPage: 0,
+        page: 1
+      }
     },
     error: []
   }),
@@ -332,14 +380,13 @@ export default {
       //   '2004/02/13': 0
       // ]
       drafts = drafts.sort((a, b) => a.id - b.id)
-      drafts.forEach((draft, draft_index) => {
-        // let draft_date = draft.date
+      drafts.forEach((draft) => {
         type_list.forEach((type) => {
-          // let type_array = draft[type]
+          // if (draft.date <= '2020/03/06') {
           app.table[type + '_data'].forEach((i, type_index) => {
-            if (type_index > 0 && app.table[type + '_data'][type_index].creation_date <= draft.date) {
-              app.table[type + '_data'][type_index].absences += 1
-              app.table[type + '_data'][type_index].existence_counter += 1
+            if (type_index > 0 && i.creation_date <= draft.date) {
+              i.absences += 1
+              i.existence_counter += 1
             }
           })
           draft[type].forEach((i) => {
@@ -351,15 +398,11 @@ export default {
             }
           })
           app.table[type + '_data'].forEach((i, type_index) => {
-            if (type_index > 0 && app.table[type + '_data'][type_index].creation_date <= draft.date) {
-              // app.log(app.table[type + '_data'][type_index].exits)
-              // app.log('draft_index')
-              // app.log(draft_index)
-              // app.log(((app.table[type + '_data'][type_index].exits * 100) / (draft_index + 1)))
-              // app.table[type + '_data'][type_index].exits_percentage = (((app.table[type + '_data'][type_index].exits * 100) / (app.table[type + '_data'][type_index].existence_counter + 1)))
-              app.table[type + '_data'][type_index].exits_percentage = Math.round(((app.table[type + '_data'][type_index].exits * 100) / (app.table[type + '_data'][type_index].existence_counter)) * 100) / 100
+            if (type_index > 0 && i.creation_date <= draft.date) {
+              i.exits_percentage = Math.round(((i.exits * 100) / (i.existence_counter)) * 100) / 100
             }
           })
+          // }
         })
       })
       // for (let d = 0; d < drafts.length; d++) {
@@ -374,6 +417,14 @@ export default {
       // }
       app.log(drafts)
       app.loaded.stats = true
+    },
+    getHeaderLabel (col) {
+      const app = this
+      if (col.type === 'date') {
+        return col.label + ' (' + app.date_format + ')'
+      } else {
+        return col.label
+      }
     },
     log (value) {
       if (value === 'this') {
