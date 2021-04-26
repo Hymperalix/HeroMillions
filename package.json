@@ -15,7 +15,7 @@
   "dependencies": {
     "@quasar/extras": "^1.9.10",
     "@vue/eslint-config-standard": "^4.0.0",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "eslint-config-standard": "^14.1.0",
     "quasar": "^1.14.3",
     "vue-i18n": "^8.0.0"
